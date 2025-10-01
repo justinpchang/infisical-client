@@ -20,6 +20,7 @@ export default defineConfig(({ mode }) => {
       "process.env.INFISICAL_ENV_SLUG": JSON.stringify(env.INFISICAL_ENV_SLUG),
     },
     server: {
+      port: 8394,
       proxy: {
         "/api": {
           target: "https://us.infisical.com",

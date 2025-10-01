@@ -7,6 +7,7 @@ interface TreeViewProps {
   searchTerm?: string;
   projectId?: string;
   environment?: string;
+  forceExpand?: boolean;
 }
 
 export const TreeView: React.FC<TreeViewProps> = ({
@@ -15,9 +16,18 @@ export const TreeView: React.FC<TreeViewProps> = ({
   searchTerm = "",
   projectId = "",
   environment = "",
+  forceExpand = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false); // Collapsed by default
+  const [expandAll, setExpandAll] = useState(false); // Track if all children should be expanded
   const indent = level * 16;
+
+  // Update expansion state when forceExpand changes
+  React.useEffect(() => {
+    if (forceExpand) {
+      setIsExpanded(true);
+    }
+  }, [forceExpand]);
 
   // Generate Infisical UI URL
   const getInfisicalUrl = (path: string) => {
@@ -27,6 +37,18 @@ export const TreeView: React.FC<TreeViewProps> = ({
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
+  };
+
+  const handleExpandAll = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExpanded(true);
+    setExpandAll(true);
+  };
+
+  const handleCollapseAll = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExpanded(false);
+    setExpandAll(false);
   };
 
   // Filter children based on search
@@ -52,7 +74,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
     return hasMatchingDescendant(child);
   });
 
-  // Auto-expand if searching
+  // Auto-expand if searching or expandAll is triggered
   const shouldBeExpanded = searchTerm ? true : isExpanded;
 
   if (node.type === "folder") {
@@ -84,7 +106,6 @@ export const TreeView: React.FC<TreeViewProps> = ({
               fontWeight: "500",
               fontSize: "13px",
               color: "#2563eb",
-              flex: 1,
             }}
           >
             <span style={{ fontSize: "11px", width: "12px" }}>
@@ -95,34 +116,86 @@ export const TreeView: React.FC<TreeViewProps> = ({
               ({filteredChildren?.length || 0})
             </span>
           </div>
-          <a
-            href={getInfisicalUrl(node.path)}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              fontSize: "11px",
-              color: "#6b7280",
-              textDecoration: "none",
-              padding: "2px 6px",
-              borderRadius: "3px",
-              transition: "all 0.15s",
-              display: "flex",
-              alignItems: "center",
-              gap: "3px",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#e5e7eb";
-              e.currentTarget.style.color = "#2563eb";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "transparent";
-              e.currentTarget.style.color = "#6b7280";
-            }}
-            title="Open in Infisical"
-          >
-            ↗
-          </a>
+          <div style={{ display: "flex", gap: "2px", alignItems: "center" }}>
+            <button
+              onClick={handleExpandAll}
+              style={{
+                fontSize: "10px",
+                color: "#6b7280",
+                backgroundColor: "transparent",
+                border: "none",
+                padding: "2px 5px",
+                borderRadius: "3px",
+                cursor: "pointer",
+                transition: "all 0.15s",
+                fontWeight: "500",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#e5e7eb";
+                e.currentTarget.style.color = "#059669";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#6b7280";
+              }}
+              title="Expand all"
+            >
+              [+]
+            </button>
+            <button
+              onClick={handleCollapseAll}
+              style={{
+                fontSize: "10px",
+                color: "#6b7280",
+                backgroundColor: "transparent",
+                border: "none",
+                padding: "2px 5px",
+                borderRadius: "3px",
+                cursor: "pointer",
+                transition: "all 0.15s",
+                fontWeight: "500",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#e5e7eb";
+                e.currentTarget.style.color = "#dc2626";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#6b7280";
+              }}
+              title="Collapse all"
+            >
+              [-]
+            </button>
+            <a
+              href={getInfisicalUrl(node.path)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                fontSize: "11px",
+                color: "#6b7280",
+                textDecoration: "none",
+                padding: "2px 6px",
+                borderRadius: "3px",
+                transition: "all 0.15s",
+                display: "flex",
+                alignItems: "center",
+                gap: "3px",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#e5e7eb";
+                e.currentTarget.style.color = "#2563eb";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#6b7280";
+              }}
+              title="Open in Infisical"
+            >
+              ↗
+            </a>
+          </div>
         </div>
         {shouldBeExpanded &&
           filteredChildren &&
@@ -136,6 +209,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
                   searchTerm={searchTerm}
                   projectId={projectId}
                   environment={environment}
+                  forceExpand={expandAll}
                 />
               ))}
             </div>
