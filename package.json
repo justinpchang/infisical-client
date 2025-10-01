@@ -1,15 +1,37 @@
 {
-  "name": "infisical-client",
+  "name": "@justinchang/infisical-client",
   "version": "1.0.0",
-  "description": "Infisical secrets browser",
+  "description": "Local browser for Infisical secrets with tree view and search",
   "license": "MIT",
   "type": "module",
+  "bin": {
+    "infisical-client": "./bin/cli.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "index.html",
+    "vite.config.ts",
+    "tsconfig.json"
+  ],
   "scripts": {
-    "dev": "vite",
+    "start": "node bin/cli.js",
+    "dev": "vite --port 8394",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview",
+    "preview": "vite preview --port 8394",
     "type-check": "tsc --noEmit"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/justinchang/infisical-client.git"
+  },
+  "keywords": [
+    "infisical",
+    "secrets",
+    "browser",
+    "tree-view",
+    "local"
+  ],
   "dependencies": {
     "fuse.js": "^7.1.0",
     "react": "^18.3.1",
