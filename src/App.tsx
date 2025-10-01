@@ -9,6 +9,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [secretCount, setSecretCount] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchSecrets = async () => {
@@ -40,17 +41,17 @@ function App() {
       style={{
         minHeight: "100vh",
         backgroundColor: "#f9fafb",
-        padding: "24px",
+        padding: "16px",
         fontFamily:
           '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
       }}
     >
       <div
         style={{
-          maxWidth: "1200px",
+          maxWidth: "1400px",
           margin: "0 auto",
           backgroundColor: "white",
-          borderRadius: "12px",
+          borderRadius: "8px",
           boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
           overflow: "hidden",
         }}
@@ -58,44 +59,74 @@ function App() {
         {/* Header */}
         <div
           style={{
-            padding: "24px",
+            padding: "12px 16px",
             borderBottom: "1px solid #e5e7eb",
             backgroundColor: "#ffffff",
           }}
         >
-          <h1
+          <div
             style={{
-              margin: 0,
-              fontSize: "28px",
-              fontWeight: "700",
-              color: "#111827",
               display: "flex",
               alignItems: "center",
-              gap: "12px",
+              justifyContent: "space-between",
+              marginBottom: "8px",
             }}
           >
-            <span>🔐</span>
-            Infisical Secrets Browser
-          </h1>
-          {!loading && !error && (
-            <p
+            <h1
               style={{
-                margin: "8px 0 0 0",
-                fontSize: "14px",
-                color: "#6b7280",
+                margin: 0,
+                fontSize: "20px",
+                fontWeight: "700",
+                color: "#111827",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
               }}
             >
-              Loaded {secretCount} secret{secretCount !== 1 ? "s" : ""} from{" "}
-              <span style={{ fontWeight: "500", color: "#374151" }}>
-                {process.env.INFISICAL_ENV_SLUG || "dev"}
-              </span>{" "}
-              environment
-            </p>
+              <span>🔐</span>
+              Infisical Secrets Browser
+            </h1>
+            {!loading && !error && (
+              <span
+                style={{
+                  fontSize: "12px",
+                  color: "#6b7280",
+                }}
+              >
+                {secretCount} secret{secretCount !== 1 ? "s" : ""} in{" "}
+                <span style={{ fontWeight: "500", color: "#374151" }}>
+                  {process.env.INFISICAL_ENV_SLUG || "dev"}
+                </span>
+              </span>
+            )}
+          </div>
+          {!loading && !error && (
+            <input
+              type="text"
+              placeholder="🔍 Search secrets... (key or value)"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "6px 12px",
+                fontSize: "13px",
+                border: "1px solid #d1d5db",
+                borderRadius: "4px",
+                outline: "none",
+                transition: "border-color 0.2s",
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = "#2563eb";
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = "#d1d5db";
+              }}
+            />
           )}
         </div>
 
         {/* Content */}
-        <div style={{ padding: "24px" }}>
+        <div style={{ padding: "12px 16px" }}>
           {loading && (
             <div
               style={{
@@ -164,20 +195,26 @@ function App() {
           )}
 
           {!loading && !error && tree && (
-            <div style={{ fontSize: "14px", lineHeight: "1.6" }}>
+            <div style={{ fontSize: "12px", lineHeight: "1.5" }}>
               {tree.children && tree.children.length > 0 ? (
                 tree.children.map((child, index) => (
-                  <TreeView key={`${child.path}-${index}`} node={child} />
+                  <TreeView
+                    key={`${child.path}-${index}`}
+                    node={child}
+                    searchTerm={searchTerm}
+                    projectId={process.env.INFISICAL_PROJECT_ID}
+                    environment={process.env.INFISICAL_ENV_SLUG}
+                  />
                 ))
               ) : (
                 <div
                   style={{
-                    padding: "48px",
+                    padding: "32px",
                     textAlign: "center",
                     color: "#6b7280",
                   }}
                 >
-                  <p style={{ fontSize: "16px", margin: 0 }}>
+                  <p style={{ fontSize: "14px", margin: 0 }}>
                     No secrets found
                   </p>
                 </div>
@@ -190,16 +227,15 @@ function App() {
       {/* Footer */}
       <div
         style={{
-          maxWidth: "1200px",
-          margin: "16px auto 0",
+          maxWidth: "1400px",
+          margin: "8px auto 0",
           textAlign: "center",
-          fontSize: "12px",
+          fontSize: "11px",
           color: "#9ca3af",
         }}
       >
         <p style={{ margin: 0 }}>
-          Project: {process.env.INFISICAL_PROJECT_ID || "N/A"} | Environment:{" "}
-          {process.env.INFISICAL_ENV_SLUG || "dev"}
+          {process.env.INFISICAL_PROJECT_ID} · {process.env.INFISICAL_ENV_SLUG}
         </p>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { defineConfig, loadEnv } from "vite";
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  
+
   return {
     plugins: [react()],
     define: {
@@ -17,10 +17,22 @@ export default defineConfig(({ mode }) => {
       "process.env.INFISICAL_PROJECT_ID": JSON.stringify(
         env.INFISICAL_PROJECT_ID
       ),
-      "process.env.INFISICAL_ENV_SLUG": JSON.stringify(
-        env.INFISICAL_ENV_SLUG
-      ),
+      "process.env.INFISICAL_ENV_SLUG": JSON.stringify(env.INFISICAL_ENV_SLUG),
+    },
+    server: {
+      proxy: {
+        "/api": {
+          target: "https://us.infisical.com",
+          changeOrigin: true,
+          secure: true,
+        },
+        "/api-app": {
+          target: "https://app.infisical.com",
+          changeOrigin: true,
+          secure: true,
+          rewrite: (path) => path.replace(/^\/api-app/, "/api"),
+        },
+      },
     },
   };
 });
-

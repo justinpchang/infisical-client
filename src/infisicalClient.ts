@@ -7,6 +7,17 @@ const INFISICAL_UNIVERSAL_AUTH_CLIENT_ID =
 const INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET =
   process.env.INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET ?? "";
 
+console.log("Environment variables loaded:", {
+  INFISICAL_PROJECT_ID: INFISICAL_PROJECT_ID ? "✓" : "✗",
+  INFISICAL_ENV_SLUG: INFISICAL_ENV_SLUG ? "✓" : "✗",
+  INFISICAL_UNIVERSAL_AUTH_CLIENT_ID: INFISICAL_UNIVERSAL_AUTH_CLIENT_ID
+    ? "✓"
+    : "✗",
+  INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET: INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET
+    ? "✓"
+    : "✗",
+});
+
 const universalAuthResponse = z.object({
   accessToken: z.string(),
   expiresIn: z.number(),
@@ -83,9 +94,15 @@ export class InfisicalClient {
     clientSecret: string;
     subdomain: "app" | "us";
   }): Promise<UniversalAuthResponse> {
-    const response = await fetch(
-      `https://${args.subdomain}.infisical.com/api/v1/auth/universal-auth/login`,
-      {
+    // Use proxy to avoid CORS issues
+    const url =
+      args.subdomain === "us"
+        ? "/api/v1/auth/universal-auth/login"
+        : "/api-app/v1/auth/universal-auth/login";
+    console.log(`Authenticating with ${args.subdomain} region...`, url);
+
+    try {
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -94,20 +111,28 @@ export class InfisicalClient {
           clientId: args.clientID,
           clientSecret: args.clientSecret,
         }).toString(),
+      });
+
+      console.log(`Auth response status: ${response.status}`);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Authentication failed:`, errorText);
+        throw new Error(`Authentication failed: ${response.statusText}`);
       }
-    );
 
-    if (!response.ok) {
-      throw new Error(`Authentication failed: ${response.statusText}`);
+      const data = await response.json();
+      console.log("Authentication successful!");
+      return universalAuthResponse.parse(data);
+    } catch (error) {
+      console.error(`Authentication error:`, error);
+      throw error;
     }
-
-    const data = await response.json();
-    return universalAuthResponse.parse(data);
   }
 
   async listAllSecrets(): Promise<Secret[]> {
     const response = await fetch(
-      `https://us.infisical.com/api/v3/secrets/raw?` +
+      `/api/v3/secrets/raw?` +
         new URLSearchParams({
           workspaceId: this.projectId,
           environment: this.environment,
